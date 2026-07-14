@@ -1,0 +1,46 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "main",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "uvicorn",
+      "python": "C:/Users/jafari.h/Desktop/ai_project/.venv/Scripts/python.exe",
+      "args": ["main:app", "--reload", "--host", "0.0.0.0", "--port", "8004", "--workers", "1"],
+      "jinja": true,
+      "justMyCode": true,
+      "console": "integratedTerminal",
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}"
+      }
+    },
+    {
+      "name": "export_models",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/export_models.py",
+      "console": "integratedTerminal",
+      "justMyCode": true,
+      "cwd": "${workspaceFolder}",
+      "python": "C:/Users/jafari.h/Desktop/ai_project/.venv/Scripts/python.exe",
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}"
+      }
+    },
+
+    {
+      "name": "fire_smoke_detector_cuda_tracker_history",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/fire_smoke_detector_cuda_tracker_history.py",
+      "console": "integratedTerminal",
+      "justMyCode": true,
+      "cwd": "${workspaceFolder}",
+      "python": "C:/Users/jafari.h/Desktop/ai_project/.venv/Scripts/python.exe",
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}"
+      }
+    }
+  ]
+}
