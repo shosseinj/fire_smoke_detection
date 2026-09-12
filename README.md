@@ -1,124 +1,33 @@
-# Fire/Smoke CCTV — MP4-Only Incident Output
+# Fire and Smoke Incident Processing
 
-## Final output
+This repository implements a video-based fire/smoke incident service with asynchronous event recording. The main design goal is to separate real-time incident processing from slower media finalization so that saving evidence does not block the detection path.
 
-After an incident ends, the final media directory contains only MP4 files:
-
-```text
-saved_fire_smoke_videos/
-├── gate-01__3d65c73c-a573-446d-846d-dab967309cc5.mp4
-├── gate-03__8de83221-7305-42e8-9242-8622fb4eece6.mp4
-└── ...
-```
-
-The project no longer writes:
+## Incident Flow
 
 ```text
-event_*.json
-frame_batch_*.json
-video_status.json
-video_completed.json
-confirmation_snapshot.jpg
+active incident
+  -> incident frames buffered in a temporary spool
+  -> incident ends
+  -> background MP4 finalization
+  -> final video saved
+  -> temporary frame spool removed
 ```
 
-Alert metadata remains in memory and is available through:
-
-```text
-GET /api/v1/fire-smoke/latest-alerts
-```
-
-In production, replace the in-memory alert handler with a database insert or a
-message-broker publish.
-
-## Why the previous output contained JSON
-
-The object containing:
-
-```json
-{
-  "event_type": "alert_started",
-  "incident_id": "...",
-  "cause": "Smoke reached high severity..."
-}
-```
-
-is alert metadata. It is not a video frame and cannot itself be converted into
-a video.
-
-The detector separately receives continuous incident frames. This build now
-uses those frames to create one MP4 after `INCIDENT_ENDED`.
-
-## Asynchronous video flow
-
-```text
-incident active
-→ JPEG frames placed in hidden temporary spool
-
-INCIDENT_ENDED
-→ VIDEO_SAVE_QUEUED
-→ background MP4 finalizer
-
-VIDEO_SAVED
-→ final MP4 placed in saved_fire_smoke_videos/
-→ temporary JPEG spool deleted
-```
-
-Temporary files are stored under:
-
-```text
-.fire_smoke_video_spool/
-```
-
-They are not stored in the final video directory and are deleted after a
-successful MP4 save.
-
-## Logs
-
-```text
-INCIDENT_ENDED |
-camera=gate-01
-incident=...
-
-VIDEO_SAVE_QUEUED |
-camera=gate-01
-incident=...
-frames=742
-
-VIDEO_SAVED |
-camera=gate-01
-incident=...
-frames=742
-duration=29.680s
-path=.../saved_fire_smoke_videos/gate-01__....mp4
-```
+The final media directory contains MP4 incident recordings. Alert metadata remains available through the API and can be replaced by a persistent database or message-broker integration in a production deployment.
 
 ## API
 
-Full status:
+The service exposes endpoints for:
 
-```text
-GET /api/v1/fire-smoke/status
-```
+- fire/smoke runtime status;
+- video-storage status;
+- recent alert metadata.
 
-Video storage status:
-
-```text
-GET /api/v1/fire-smoke/video-status
-```
-
-Latest alert metadata, memory only:
-
-```text
-GET /api/v1/fire-smoke/latest-alerts
-```
-
-## Start
+## Run
 
 ```powershell
 python run_server.py
 ```
-
-Do not use `--reload`.
 
 ## Test
 
@@ -126,8 +35,6 @@ Do not use `--reload`.
 python smoke_test.py
 ```
 
-Expected:
+## Engineering Focus
 
-```text
-SMOKE TEST PASSED
-```
+The repository is mainly concerned with incident lifecycle management, asynchronous media handling, and API integration around a detection pipeline rather than with introducing a new fire/smoke model architecture.
